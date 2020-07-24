@@ -4,6 +4,32 @@
       "invocationName": "engage ada",
       "intents": [
         {
+          "name": "PlayStreamIntent",
+          "slots": [],
+          "samples": [
+            "to play",
+            "to start playing",
+            "to begin playing"
+          ]
+        },
+        {
+          "name": "AboutIntent",
+          "slots": [],
+          "samples": [
+            "about",
+            "what is this",
+            "tell me about this"
+          ]
+        },
+        {
+          "name": "AMAZON.PauseIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.ResumeIntent",
+          "samples": []
+        },
+        {
           "name": "TimerStartIntent",
           "slots": [],
           "samples": [
@@ -36,10 +62,17 @@
         {
           "name": "AMAZON.NoIntent",
           "samples": []
+        },
+        {
+          "name": "AMAZON.PauseIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.ResumeIntent",
+          "samples": []
         }
       ],
       "types": []
     }
-  },
-  "version": "4"
+  }
 }

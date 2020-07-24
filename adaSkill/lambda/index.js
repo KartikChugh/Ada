@@ -27,42 +27,128 @@ const timerItem = {
     }
 };
 
-const LaunchRequestHandler = {
+const STREAMS = [
+    {
+        token: '1',
+        url: 'https://streaming.radionomy.com/-ibizaglobalradio-?lang=en-US&appName=iTunes.m3u',
+        metadata: {
+            title: 'Stream One',
+            subtitle: 'A subtitle for stream one',
+            art: {
+                sources: [
+                    {
+                        contentDescription: 'example image',
+                        url: 'https://s3.amazonaws.com/cdn.dabblelab.com/img/audiostream-starter-512x512.png',
+                        widthPixels: 512,
+                        heightPixels: 512,
+                    },
+                ],
+            },
+            backgroundImage: {
+                sources: [
+                    {
+                        contentDescription: 'example image',
+                        url: 'https://s3.amazonaws.com/cdn.dabblelab.com/img/wayfarer-on-beach-1200x800.png',
+                        widthPixels: 1200,
+                        heightPixels: 800,
+                    },
+                ],
+            },
+        },
+    },
+];
+
+const PlayStreamIntentHandler = {
     canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest'
-            || (Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-                && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'TimerStartIntent'));
+        return handlerInput.requestEnvelope.request.type === 'LaunchRequest'
+            || handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && (
+                handlerInput.requestEnvelope.request.intent.name === 'PlayStreamIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.ResumeIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.LoopOnIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NextIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PreviousIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.RepeatIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.ShuffleOnIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StartOverIntent'
+            );
     },
     handle(handlerInput) {
+        const stream = STREAMS[0];
 
-        const { permissions } = handlerInput.requestEnvelope.context.System.user;
-
-        if (!permissions) {
-
-            handlerInput.responseBuilder
-                .speak("This skill needs permission to access your timers.")
-                .addDirective({
-                    type: "Connections.SendRequest",
-                    name: "AskFor",
-                    payload: {
-                        "@type": "AskForPermissionsConsentRequest",
-                        "@version": "1",
-                        "permissionScope": "alexa::alerts:timers:skill:readwrite"
-                    },
-                    token: ""
-                });
-
-        } else {
-            handlerInput.responseBuilder
-                .speak("would you like to set a timer?")
-                .reprompt("would you like to set a timer?")
-        }
+        handlerInput.responseBuilder
+            .speak(`starting ${stream.metadata.title}`)
+            .addAudioPlayerPlayDirective('REPLACE_ALL', stream.url, stream.token, 0, null, stream.metadata);
 
         return handlerInput.responseBuilder
             .getResponse();
-
-    }
+    },
 };
+
+const PlaybackStoppedIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'PlaybackController.PauseCommandIssued'
+            || handlerInput.requestEnvelope.request.type === 'AudioPlayer.PlaybackStopped';
+    },
+    handle(handlerInput) {
+        handlerInput.responseBuilder
+            .addAudioPlayerClearQueueDirective('CLEAR_ALL')
+            .addAudioPlayerStopDirective();
+
+        return handlerInput.responseBuilder
+            .getResponse();
+    },
+};
+
+const PlaybackStartedIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'AudioPlayer.PlaybackStarted';
+    },
+    handle(handlerInput) {
+        handlerInput.responseBuilder
+            .addAudioPlayerClearQueueDirective('CLEAR_ENQUEUED');
+
+        return handlerInput.responseBuilder
+            .getResponse();
+    },
+};
+
+// const LaunchRequestHandler = {
+//     canHandle(handlerInput) {
+//         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest'
+//             || (Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+//                 && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'TimerStartIntent'));
+//     },
+//     handle(handlerInput) {
+
+//         const { permissions } = handlerInput.requestEnvelope.context.System.user;
+
+//         if (!permissions) {
+
+//             handlerInput.responseBuilder
+//                 .speak("This skill needs permission to access your timers.")
+//                 .addDirective({
+//                     type: "Connections.SendRequest",
+//                     name: "AskFor",
+//                     payload: {
+//                         "@type": "AskForPermissionsConsentRequest",
+//                         "@version": "1",
+//                         "permissionScope": "alexa::alerts:timers:skill:readwrite"
+//                     },
+//                     token: ""
+//                 });
+
+//         } else {
+//             handlerInput.responseBuilder
+//                 .speak("would you like to set a timer?")
+//                 .reprompt("would you like to set a timer?")
+//         }
+
+//         return handlerInput.responseBuilder
+//             .getResponse();
+
+//     }
+// };
 
 const ConnectionsResponsetHandler = {
     canHandle(handlerInput) {
@@ -178,12 +264,20 @@ const HelpIntentHandler = {
 
 const CancelAndStopIntentHandler = {
     canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.CancelIntent'
-                || Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.StopIntent');
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && (
+                handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PauseIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.CancelIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.LoopOffIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.ShuffleOffIntent'
+            );
     },
     handle(handlerInput) {
         const speakOutput = 'Goodbye!';
+        handlerInput.responseBuilder
+            .addAudioPlayerClearQueueDirective('CLEAR_ALL')
+            .addAudioPlayerStopDirective();
         return handlerInput.responseBuilder
             .speak(speakOutput)
             .getResponse();
@@ -236,7 +330,10 @@ exports.handler = Alexa.SkillBuilders.custom()
         new persistenceAdapter.S3PersistenceAdapter({bucketName:process.env.S3_PERSISTENCE_BUCKET})
     )
     .addRequestHandlers(
-        LaunchRequestHandler,
+        //LaunchRequestHandler,
+        PlayStreamIntentHandler,
+        PlaybackStartedIntentHandler,
+        PlaybackStoppedIntentHandler,
         ConnectionsResponsetHandler,
         YesNoIntentHandler,
         HelpIntentHandler,
