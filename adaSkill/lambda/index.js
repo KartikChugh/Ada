@@ -58,6 +58,43 @@ const STREAMS = [
     },
 ];
 
+const LaunchRequestHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest'
+            || (Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+                && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'TimerStartIntent'));
+    },
+    handle(handlerInput) {
+
+        const { permissions } = handlerInput.requestEnvelope.context.System.user;
+
+        if (!permissions) {
+
+            handlerInput.responseBuilder
+                .speak("This skill needs permission to access your timers.")
+                .addDirective({
+                    type: "Connections.SendRequest",
+                    name: "AskFor",
+                    payload: {
+                        "@type": "AskForPermissionsConsentRequest",
+                        "@version": "1",
+                        "permissionScope": "alexa::alerts:timers:skill:readwrite"
+                    },
+                    token: ""
+                });
+
+        } else {
+            handlerInput.responseBuilder
+                .speak("Welcome to Ada! Would you like to start a lecture, a study session, or learn an interesting fact about computer science?")
+                .reprompt("Welcome to Ada! Would you like to start a lecture, a study session, or learn an interesting fact about computer science?")
+        }
+
+        return handlerInput.responseBuilder
+            .getResponse();
+
+    }
+};
+
 const PlayStreamIntentHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type === 'LaunchRequest'
@@ -113,43 +150,6 @@ const PlaybackStartedIntentHandler = {
     },
 };
 
-// const LaunchRequestHandler = {
-//     canHandle(handlerInput) {
-//         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest'
-//             || (Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-//                 && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'TimerStartIntent'));
-//     },
-//     handle(handlerInput) {
-
-//         const { permissions } = handlerInput.requestEnvelope.context.System.user;
-
-//         if (!permissions) {
-
-//             handlerInput.responseBuilder
-//                 .speak("This skill needs permission to access your timers.")
-//                 .addDirective({
-//                     type: "Connections.SendRequest",
-//                     name: "AskFor",
-//                     payload: {
-//                         "@type": "AskForPermissionsConsentRequest",
-//                         "@version": "1",
-//                         "permissionScope": "alexa::alerts:timers:skill:readwrite"
-//                     },
-//                     token: ""
-//                 });
-
-//         } else {
-//             handlerInput.responseBuilder
-//                 .speak("would you like to set a timer?")
-//                 .reprompt("would you like to set a timer?")
-//         }
-
-//         return handlerInput.responseBuilder
-//             .getResponse();
-
-//     }
-// };
-
 const ConnectionsResponsetHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'Connections.Response';
@@ -182,8 +182,8 @@ const ConnectionsResponsetHandler = {
         switch (status) {
             case "ACCEPTED":
                 handlerInput.responseBuilder
-                    .speak("Now that we have permission to set a timer. Would you like to start?")
-                    .reprompt('would you like to start?')
+                    .speak("Welcome to Ada! Would you like to start a lecture, a study session, or learn an interesting fact about computer science?")
+                    .reprompt("Welcome to Ada! Would you like to start a lecture, a study session, or learn an interesting fact about computer science?")
                 break;
             case "DENIED":
                 handlerInput.responseBuilder
@@ -330,7 +330,7 @@ exports.handler = Alexa.SkillBuilders.custom()
         new persistenceAdapter.S3PersistenceAdapter({bucketName:process.env.S3_PERSISTENCE_BUCKET})
     )
     .addRequestHandlers(
-        //LaunchRequestHandler,
+        LaunchRequestHandler,
         PlayStreamIntentHandler,
         PlaybackStartedIntentHandler,
         PlaybackStoppedIntentHandler,
