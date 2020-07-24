@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "template nineteen",
+      "invocationName": "ada skill",
       "intents": [
         {
           "name": "TimerStartIntent",
