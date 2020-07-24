@@ -1,8 +1,17 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "ada skill",
+      "invocationName": "template nineteen",
       "intents": [
+        {
+          "name": "TimerStartIntent",
+          "samples": [
+            "start timer",
+            "begin timer",
+            "to start",
+            "to begin"
+          ]
+        },
         {
           "name": "AMAZON.CancelIntent",
           "samples": []
@@ -16,25 +25,20 @@
           "samples": []
         },
         {
-          "name": "HelloWorldIntent",
-          "slots": [],
-          "samples": [
-            "hello",
-            "how are you",
-            "say hi world",
-            "say hi",
-            "hi",
-            "say hello world",
-            "say hello"
-          ]
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
         },
         {
-          "name": "AMAZON.NavigateHomeIntent",
+          "name": "AMAZON.YesIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NoIntent",
           "samples": []
         }
       ],
       "types": []
     }
   },
-  "version": "2"
+  "version": "3"
 }
